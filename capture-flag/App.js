@@ -14,7 +14,7 @@ import {
 import { Constants, Location, Permissions, MapView, Font } from 'expo';
 import randomLocation from 'random-location';
 // import FontAwesome, { Icons } from 'react-native-fontawesome';
-import {FontAwesome} from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
 
 export default class App extends Component {
   state = {
@@ -108,8 +108,7 @@ export default class App extends Component {
         <View style={{ flex: 1 }}>
           <View style={styles.topBar}>
             <View style={styles.user}>
-            <FontAwesome name="user" size={30} color="white" />
-              
+              <FontAwesome name="user" size={30} color="white" />
             </View>
             <View style={styles.logo}>
               <Image
@@ -118,8 +117,8 @@ export default class App extends Component {
               />
             </View>
             <View style={styles.score}>
-            <FontAwesome name="trophy" size={30} color="white"></FontAwesome>
-              <Text style={styles.scoreNumber} >{this.state.score}</Text>
+              <FontAwesome name="trophy" size={30} color="white" />
+              <Text style={styles.scoreNumber}>{this.state.score}</Text>
             </View>
           </View>
           <MapView
@@ -158,11 +157,11 @@ export default class App extends Component {
             />
           </MapView>
 
-          <View style={styles.buttonContainer}>
-            <TouchableHighlight style={styles.button} onPress={this.handleRecenter}>
-                <FontAwesome name="bullseye" size={40} color="#00bbff" />
-            </TouchableHighlight>
-          </View>
+          <TouchableHighlight onPress={this.handleRecenter}>
+            <View style={styles.buttonContainer}>
+              <FontAwesome name="bullseye" size={40} color="#00bbff" />
+            </View>
+          </TouchableHighlight>
         </View>
       );
     }
@@ -187,21 +186,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center'
   },
- 
+
   buttonContainer: {
     position: 'absolute',
     bottom: 40,
     right: 20,
     backgroundColor: 'white',
     display: 'flex',
-    alignItems:'center',
+    alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 150,
     width: 60,
-    height:60,
+    height: 60,
     shadowColor: '#333',
     shadowOpacity: 0.5,
-    shadowOffset: {width: 5,height: 5}
+    shadowOffset: { width: 5, height: 5 }
   },
   topBar: {
     display: 'flex',
@@ -213,7 +212,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10
   },
   user: {
-    color:'white',
+    color: 'white',
     flex: 1,
     alignItems: 'center',
     flexGrow: 1
@@ -224,17 +223,17 @@ const styles = StyleSheet.create({
     flexGrow: 2
   },
   score: {
-    color:'white',
-    display:'flex',
+    color: 'white',
+    display: 'flex',
     flex: 1,
     alignItems: 'flex-end',
     justifyContent: 'center',
     flexGrow: 1,
-    flexDirection: 'row',
+    flexDirection: 'row'
   },
   scoreNumber: {
-    color: 'white', 
-    fontSize: 20, 
+    color: 'white',
+    fontSize: 20,
     paddingLeft: 5
   }
 });
