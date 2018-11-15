@@ -168,7 +168,6 @@ export default class App extends Component {
     }
   }
   handleRecenter = () => {
-    console.log('button pressed');
     const { lat, long } = this.state;
     const userLocation = { latitude: lat, longitude: long };
     this.map.animateToRegion(userLocation, 500);
