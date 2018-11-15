@@ -1,36 +1,30 @@
 import React, { Component } from 'react';
-import greenFlag from './assets/green-flag.png';
-import redFlag from './assets/red-flag.png';
 import {
   Platform,
   Text,
   View,
   StyleSheet,
   Dimensions,
-  Alert,
-  Image,
-  TouchableHighlight
+  Alert
 } from 'react-native';
 import { Constants, Location, Permissions, MapView, Font } from 'expo';
-import randomLocation from 'random-location';
-// import FontAwesome, { Icons } from 'react-native-fontawesome';
-import { FontAwesome } from '@expo/vector-icons';
+import HeaderBar from './components/HeaderBar'
+import Map from './components/Map'
 
 export default class App extends Component {
   state = {
     errorMessage: null,
-    loading: true,
-    lat: 0,
-    long: 0,
-    random: true,
-    flagCaptured: false,
-    modalVisible: false,
-    score: 0
+		loading: true,
+		lat: 0,
+		long: 0,
+		nearFlag: false,
+		flagCaptured: false,
+		flagGenerated: false,
+		flagLat: 0,
+		flagLong: 0,
+		score: 0
   };
   componentWillMount() {
-    // Font.loadAsync({
-    //   'FontAwesome' : require('react-native-fontawesome')
-    // })
     if (Platform.OS === 'android' && !Constants.isDevice) {
       this.setState({
         errorMessage:
@@ -50,8 +44,6 @@ export default class App extends Component {
     }
     Location.watchPositionAsync({ distanceInterval: 5 }, newLocation => {
       if (this.state.lat !== newLocation.coords.latitude) {
-        console.log(this.state.lat, '<< state');
-        console.log(newLocation.coords.latitude, '<< new location');
         this.setState({
           lat: newLocation.coords.latitude,
           long: newLocation.coords.longitude,
@@ -62,7 +54,7 @@ export default class App extends Component {
   };
 
   captureFlag = () => {
-    if (this.state.random) {
+    if (this.state.nearFlag) {
       Alert.alert(
         'Alert Title',
         'My Alert Msg',
@@ -93,84 +85,22 @@ export default class App extends Component {
         </View>
       );
     else {
+      const {lat, long, nearFlag} = this.state
       const screen = Dimensions.get('window');
       const ASPECT_RATIO = screen.width / screen.height;
       const latitudeDelta = 0.005;
-      const { lat, long } = this.state;
-      const initialRegion = {
-        latitudeDelta,
-        longitudeDelta: latitudeDelta * ASPECT_RATIO,
-        latitude: lat,
-        longitude: long
-      };
-      const flag = this.state.random ? greenFlag : redFlag;
+      const longitudeDelta = latitudeDelta * ASPECT_RATIO;
+      const userLocation = { latitude: lat, longitude: long, latitudeDelta, longitudeDelta };
+
       return (
         <View style={{ flex: 1 }}>
-          <View style={styles.topBar}>
-            <View style={styles.user}>
-              <FontAwesome name="user" size={30} color="white" />
-            </View>
-            <View style={styles.logo}>
-              <Image
-                source={require('./assets/icon.png')}
-                style={{ height: 25, width: 25 }}
-              />
-            </View>
-            <View style={styles.score}>
-              <FontAwesome name="trophy" size={30} color="white" />
-              <Text style={styles.scoreNumber}>{this.state.score}</Text>
-            </View>
-          </View>
-          <MapView
-            ref={map => {
-              this.map = map;
-            }}
-            style={{ flex: 1 }}
-            initialRegion={initialRegion}
-            title={'capture flag'}
-            showsUserLocation={true}
-            followUserLocation={true}
-          >
-            {/* {this.state.location.coords && (
-              <MapView.Marker
-                coordinate={{
-                  latitude: this.state.location.coords.latitude,
-                  longitude: this.state.location.coords.longitude
-                }}
-                title={'Your Location'}
-              />
-            )} */}
-            <MapView.Marker
-              image={flag}
-              onPress={this.captureFlag}
-              coordinate={{
-                latitude: randomLocation.randomCirclePoint(
-                  { latitude: this.state.lat, longitude: this.state.long },
-                  500
-                ).latitude,
-                longitude: randomLocation.randomCirclePoint(
-                  { latitude: this.state.lat, longitude: this.state.long },
-                  500
-                ).longitude
-              }}
-              // title={'Capture Flag'}
-            />
-          </MapView>
-
-          <TouchableHighlight onPress={this.handleRecenter}>
-            <View style={styles.buttonContainer}>
-              <FontAwesome name="bullseye" size={40} color="#00bbff" />
-            </View>
-          </TouchableHighlight>
+          <HeaderBar score={this.state.score} />
+          <Map lat={lat} long={long} isNearFlag={nearFlag} captureFlag={this.captureFlag} resetCoords={userLocation}/>
         </View>
       );
     }
   }
-  handleRecenter = () => {
-    const { lat, long } = this.state;
-    const userLocation = { latitude: lat, longitude: long };
-    this.map.animateToRegion(userLocation, 500);
-  };
+
 }
 
 const styles = StyleSheet.create({
@@ -180,60 +110,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: Constants.statusBarHeight,
     backgroundColor: '#ecf0f1'
-  },
-  paragraph: {
-    margin: 24,
-    fontSize: 18,
-    textAlign: 'center'
-  },
-
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 40,
-    right: 20,
-    backgroundColor: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 150,
-    width: 60,
-    height: 60,
-    shadowColor: '#333',
-    shadowOpacity: 0.5,
-    shadowOffset: { width: 5, height: 5 }
-  },
-  topBar: {
-    display: 'flex',
-    height: 80,
-    backgroundColor: '#00bbff',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    paddingVertical: 10
-  },
-  user: {
-    color: 'white',
-    flex: 1,
-    alignItems: 'center',
-    flexGrow: 1
-  },
-  logo: {
-    flex: 1,
-    alignItems: 'center',
-    flexGrow: 2
-  },
-  score: {
-    color: 'white',
-    display: 'flex',
-    flex: 1,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    flexGrow: 1,
-    flexDirection: 'row'
-  },
-  scoreNumber: {
-    color: 'white',
-    fontSize: 20,
-    paddingLeft: 5
   }
 });
