@@ -6,6 +6,7 @@ import { Constants, Location, Permissions, MapView } from 'expo';
 import randomLocation from 'random-location';
 import geolib from 'geolib';
 import * as api from './api';
+import AppNavigation from './Navigation/AppNavigation'
 
 export default class App extends Component {
 	state = {
@@ -28,7 +29,7 @@ export default class App extends Component {
 		} else {
 			this._getLocationAsync();
 
-			api.getUser('Jacobgodslayer').then(user =>
+			api.getUser('BigT93').then(user =>
 				this.setState(
 					{
 						score: user.score,
@@ -137,8 +138,9 @@ export default class App extends Component {
 			};
 			const flag = this.state.nearFlag ? greenFlag : redFlag;
 			return (
-				<View style={{ flex: 1 }}>
-					<View style={styles.topBar}>
+        <View style={{ flex: 1 }}>
+        <AppNavigation score={this.state.score}/>
+					{/* <View style={styles.topBar}>
 						<View style={styles.user}>
 							<Text>User</Text>
 						</View>
@@ -148,8 +150,8 @@ export default class App extends Component {
 						<View style={styles.score}>
 							<Text>Score: {this.state.score}</Text>
 						</View>
-					</View>
-					<MapView
+					</View> */}
+					{/* <MapView
 						ref={map => {
 							this.map = map;
 						}}
@@ -189,7 +191,7 @@ export default class App extends Component {
 							}}
 							title={'Football Museum'}
 						/> */}
-					</MapView>
+					{/* </MapView> */}
 				</View>
 			);
 		}
