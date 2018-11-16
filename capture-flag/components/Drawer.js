@@ -1,11 +1,17 @@
 import React, { Component } from 'react';
-import {Text, View, Button} from 'react-native';
+import {Text, View, Button, AsyncStorage } from 'react-native';
 
 class Drawer extends Component {
+
+  logOutUser = () => {
+		AsyncStorage.removeItem("mainUser")
+		this.props.navigation.navigate("Login") 
+  }
+  
   render() {
     return (
       <View>
-        <Button onPress={() => console.log('button pressed')} title="Log Out"></Button>
+        <Button onPress={() => this.logOutUser()} title="Log Out"></Button>
       </View>
     );
   }

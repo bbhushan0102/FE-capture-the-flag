@@ -58,6 +58,7 @@ export default class MainMap extends Component {
 			}
 		});
 	};
+
 	generateFlag = username => {
 		const flagCoordinate = {
 			latitude: randomLocation.randomCirclePoint({ latitude: this.state.lat, longitude: this.state.long }, 500).latitude,
