@@ -32,7 +32,7 @@ export const patchFlagCapture = async username => {
 
 export const getUserAfterLogin = async (user) => {
     const { username, password } = user
-    const { data } = await axios.post(`${DB_URL}/login`, { username, password })
+	const { data } = await axios.post(`${DB_URL}/login`, { username, password })
     return data
 }
 
@@ -41,3 +41,8 @@ export const addUser = async user => {
     const { data } = await axios.post(DB_URL, { name, username, password, confirm })
     return data
 }
+export const patchZoneLocation = async (username, latUpdate, longUpdate) => {
+	// console.log(username, latUpdate, longUpdate);
+	const body = await api.patch(`/flag/${username}/zone?latitude=${latUpdate}&longitude=${longUpdate}`);
+	// console.log(body, '<<<<<<');
+};

@@ -20,7 +20,6 @@ export default class Register extends Component {
     super(props);
     this.state = {
       error: false,
-      nameExist: false
     };
   }
 
@@ -34,16 +33,15 @@ export default class Register extends Component {
   onRegisterPress = user => {
     api.addUser(user)
     .then(user => {
-      const { name, score, username } = user
-      const mainUser = { name, score, username } 
-      if (name !== 'UserExistsError') {
-      this.setState({
+      const { name, score, username, flagCaptured, flagGenerated, flagLatitude, flagLongitude } = user
+      const mainUser = { name, score, username, flagCaptured, flagGenerated, flagLatitude, flagLongitude } 
+      this.setState({ 
         password: "", 
-        confirm: ""
+        confirm: "",
+        error: false 
       })
       AsyncStorage.setItem("mainUser", JSON.stringify(mainUser))
-      this.props.navigation.navigate("Map");
-    }
+      this.props.navigation.navigate("mainStack")
     })
     .catch(error => {
       this.setState({

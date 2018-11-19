@@ -23,8 +23,8 @@ export default class Login extends Component {
   loginUser = (user) => {
     api.getUserAfterLogin(user)
     .then(user => {
-      const { name, score, username, flagCaptured, flagGenerated, flagLatitude, flagLongitude } = user
-      const mainUser = { name, score, username, flagCaptured, flagGenerated, flagLatitude, flagLongitude } 
+      const { name, score, username, flagCaptured, flagGenerated, flagLat, flagLong, zoneLat, zoneLong } = user
+      const mainUser = { name, score, username, flagCaptured, flagGenerated, flagLat, flagLong, zoneLat, zoneLong } 
       this.setState({ 
         password: "", 
         confirm: "",

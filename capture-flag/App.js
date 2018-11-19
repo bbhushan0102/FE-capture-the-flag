@@ -59,18 +59,6 @@ const LoginStack = createStackNavigator({
   }
 })
 
-// export default App = createStackNavigator({
-//   loginStack: { screen: LoginStack },
-//    mainStack: { screen: MainNavigation }
-// }, {
-//   // Default config for all screens
-  
-//   headerMode: 'none',
-//   title: 'Main',
-//   initialRouteName: 'loginStack',
-  
-// })
-
 class App extends Component {
 
   componentDidMount() {
@@ -91,9 +79,6 @@ class App extends Component {
     );
   }
 }
-
-
-
 export default createSwitchNavigator(
   {
     AuthLoading: App,

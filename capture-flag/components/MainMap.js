@@ -11,34 +11,42 @@ import Flag from './Flag';
 export default class MainMap extends Component {
 	state = {
 		errorMessage: null,
+		loading: true,
+		lat: 0,
+		long: 0,
+		nearFlag: false,
 		flagCaptured: false,
 		flagGenerated: false,
-		 flagLat: 0,
-		 flagLong: 0,
-         lat: 0,
-		 long: 0,
-         loading: true,
-         name: '',
-         nearFlag: false,
-         score: 0,
-         username: ''
-
+		flagLat: 0,
+		flagLong: 0,
+		score: 0,
+		zoneLat: 0,
+		zoneLong: 0,
+		username: ''
 	};
 	componentWillMount() {
+		console.log('mounting');
 		if (Platform.OS === 'android' && !Constants.isDevice) {
 			this.setState({
 				errorMessage: 'Oops, this will not work on Sketch in an Android emulator. Try it on your device!'
 			});
+
 		} else {
 			this._getLocationAsync();
 
 			AsyncStorage.getItem('mainUser')
 			.then(userObj => {
 				const newMainObj = JSON.parse(userObj)
-				this.setState ({...newMainObj}, this.generateFlag(user.username))
-			})
+				console.log(newMainObj)
+				this.setState ({...newMainObj},
+					() => {
+						if (!this.state.flagGenerated ) this.generateFlag(this.state.username);
+					}
+				)
+				});
 		}
 	}
+	
 
 	_getLocationAsync = async () => {
 		let { status } = await Permissions.askAsync(Permissions.LOCATION);
@@ -72,19 +80,33 @@ export default class MainMap extends Component {
 		});
 	};
 
+	generateZone = username => {
+		const zoneCoordinate = {
+			latitude: randomLocation.randomCirclePoint({ latitude: this.state.lat, longitude: this.state.long }, 500).latitude,
+			longitude: randomLocation.randomCirclePoint({ latitude: this.state.lat, longitude: this.state.long }, 500).longitude
+		};
+		api.patchZoneLocation(username, zoneCoordinate.latitude, zoneCoordinate.longitude);
+		this.setState({
+			zoneLat: zoneCoordinate.latitude,
+			zoneLong: zoneCoordinate.longitude
+		});
+	};
+
 	captureFlag = () => {
 		if (this.state.nearFlag) {
 			Alert.alert(
-				'Alert Title',
-				'My Alert Msg',
+				'Collect Flag',
+				'Collect Flag',
 				[
 					{
 						text: 'Capture the flag',
 						onPress: () => {
-							this.incrementScore();
+							// this.incrementScore();
 							api.patchFlagCapture(this.state.username, this.state.flagLong, this.state.flagLat);
+							this.generateZone(this.state.username);
 							this.setState({
-								flagCaptured: true
+								flagCaptured: true,
+								flagGenerated: false
 							});
 						}
 					},
@@ -94,7 +116,15 @@ export default class MainMap extends Component {
 			);
 		}
 	};
-
+	dropFlag = () => {
+		if (this.state.nearFlag) {
+			this.incrementScore();
+			this.setState({
+				flagCaptured: false
+			});
+			this.generateFlag(this.state.username);
+		}
+	};
 	incrementScore = () => {
 		const scoreUpdate = 5;
 		api.patchScore(this.state.username, scoreUpdate);
@@ -103,28 +133,32 @@ export default class MainMap extends Component {
 		});
 	};
 	amINear = () => {
-		const near = geolib.isPointInCircle(
-			{ latitude: this.state.lat, longitude: this.state.long },
-			{ latitude: 53.4858, longitude: -2.2421 }, //need to fetch from BE
-			150
-		);
+		let near = false;
+		if (!this.state.flagCaptured) {
+			near = geolib.isPointInCircle({ latitude: this.state.lat, longitude: this.state.long }, { latitude: this.state.flagLat, longitude: this.state.flagLong }, 20);
+		} else {
+			near = geolib.isPointInCircle({ latitude: this.state.lat, longitude: this.state.long }, { latitude: this.state.zoneLat, longitude: this.state.zoneLong }, 20);
+		}
 		this.setState({
 			nearFlag: near
 		});
-	};
-    handleRecenter = () => {
-        this.map.animateToRegion(this.userLocationWithDelta(), 500);
-      };
-    userLocationWithDelta = () => {
-            const {lat, long} = this.state
-            const screen = Dimensions.get('window');
-            const ASPECT_RATIO = screen.width / screen.height;
-            const latitudeDelta = 0.005;
-            const longitudeDelta = latitudeDelta * ASPECT_RATIO;
-            const userLocation = { latitude: lat, longitude: long, latitudeDelta, longitudeDelta };
-            return userLocation
-    }
+  };
+  handleRecenter = () => {
+    this.map.animateToRegion(this.userLocationWithDelta(), 500);
+  };
+  userLocationWithDelta = () => {
+    const {lat, long} = this.state
+    const screen = Dimensions.get('window');
+    const ASPECT_RATIO = screen.width / screen.height;
+    const latitudeDelta = 0.005;
+    const longitudeDelta = latitudeDelta * ASPECT_RATIO;
+    const userLocation = { latitude: lat, longitude: long, latitudeDelta, longitudeDelta };
+    return userLocation
+}
+
 	render() {
+		console.log(this.state.flagLat, this.state.flagLong);
+		// console.log('flagCaptured', this.state.flagCaptured);
 		if (this.state.loading)
 			return (
 				<View style={styles.loading}>
@@ -132,7 +166,7 @@ export default class MainMap extends Component {
 				</View>
 			);
 		else {
-            const {nearFlag, flagLat, flagLong} = this.state
+			const { lat, long } = this.state;
 			return (
 				<View style={{ flex: 1 }}>
 					<MapView
@@ -145,51 +179,40 @@ export default class MainMap extends Component {
 						showsUserLocation={true}
 						followUserLocation={true}
 					>
-						{/* {this.state.flagLat && this.state.flagLong && (
-							<MapView.Marker
-								image={flag}
-								onPress={this.captureFlag}
-								coordinate={{
-									latitude: this.state.flagLat,
-									longitude: this.state.flagLong
-								}}
-								title={'Capture Flag'}
-							/>
-						)} */}
 						{/* FLAG COMPONENT */}
-						<Flag captureFlag={this.captureFlag} nearFlag={nearFlag} flagLat={flagLat} flagLong={flagLong} />
+						{!this.state.flagCaptured && <Flag captureFlag={this.captureFlag} nearFlag={this.state.nearFlag} flagLat={this.state.flagLat} flagLong={this.state.flagLong} />}
+						{this.state.flagCaptured && <MapView.Circle center={{ latitude: this.state.flagLat, longitude: this.state.flagLong }} radius={20} fillColor="rgba(0, 255, 0, 0.3)" />}
 					</MapView>
-                    <TouchableHighlight onPress={this.handleRecenter} underlayColor={'#ececec'} style={styles.recenterBtn}>
-                         <FontAwesome  name="bullseye" size={40} color="#00bbff" />
-                    </TouchableHighlight>
+				<TouchableHighlight onPress={this.handleRecenter} underlayColor={'#ececec'} style={styles.recenterBtn}>
+					<FontAwesome  name="bullseye" size={40} color="#00bbff" />
+				</TouchableHighlight>
 				</View>
 			);
 		}
-	}
+  }
 }
-
-const styles = StyleSheet.create({
-	loading: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingTop: Constants.statusBarHeight,
-		backgroundColor: '#ecf0f1'
-	},
-	recenterBtn: {
-        position: 'absolute',
-        bottom: 40,
-        right: 20,
-        backgroundColor: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 150,
-        width: 60,
-        height: 60,
-        shadowColor: '#333',
-        shadowOpacity: 0.4,
-        shadowOffset: { width: 4, height: 4 },
-        elevation: 5
-      }
-});
+  const styles = StyleSheet.create({
+    loading: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: Constants.statusBarHeight,
+      backgroundColor: '#ecf0f1'
+    },
+    recenterBtn: {
+          position: 'absolute',
+          bottom: 40,
+          right: 20,
+          backgroundColor: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 150,
+          width: 60,
+          height: 60,
+          shadowColor: '#333',
+          shadowOpacity: 0.4,
+          shadowOffset: { width: 4, height: 4 },
+          elevation: 5
+        }
+  });
